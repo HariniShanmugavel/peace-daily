@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Peace Daily Check-In</title>
+</head>
+<body>
+    <h1>Peace Daily Check-In</h1>
+
+    <form id="checkinForm">
+        Mood: <input type="text" id="mood"><br>
+        Stress Level: <input type="number" id="stress_level"><br>
+        Note: <input type="text" id="note"><br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <h2>Check-Ins</h2>
+    <ul id="checkinsList">
+        {% for c in checkins %}
+            <li>{{ c.created_at }}: Mood={{ c.mood }}, Stress={{ c.stress_level }}, Note={{ c.note }}</li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        async function loadCheckins() {
+            const res = await fetch("/checkins");
+            const checkins = await res.json();
+            const ul = document.getElementById("checkinsList");
+            ul.innerHTML = "";
+            checkins.forEach(c => {
+                const li = document.createElement("li");
+                li.textContent = `${c.created_at}: Mood=${c.mood}, Stress=${c.stress_level}, Note=${c.note}`;
+                ul.appendChild(li);
+            });
+        }
+
+        document.getElementById("checkinForm").addEventListener("submit", async e => {
+            e.preventDefault();
+            const mood = document.getElementById("mood").value;
+            const stress_level = parseInt(document.getElementById("stress_level").value);
+            const note = document.getElementById("note").value;
+
+            await fetch("/checkin", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mood, stress_level, note })
+            });
+
+            document.getElementById("checkinForm").reset();
+            loadCheckins();
+        });
+
+        loadCheckins();
+    </script>
+</body>
+</html>
